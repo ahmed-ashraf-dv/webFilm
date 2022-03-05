@@ -1,123 +1,105 @@
-let btnser      = document.querySelector(".contain .text button"),
-    inp         = document.querySelector(".contain .text input"),
-    span        = document.querySelector(".contain h1 span"),
-    divForSel   = document.querySelector(".lang-btn .lang"),
-    selectBox   = document.querySelector(".lang .dropDown"),
-    lis         = document.querySelectorAll(".dropDown ul li"),
-    box         = document.querySelector(".contain .net"),
-    DropSpan    = document.querySelector(".lang span"),
-    nav         = document.querySelector("#nav");
+// Helper Function
+const toggleActiveClass = (el) => el.classList.toggle("active");
 
-// BackGround Nav On Scroll
-window.addEventListener("scroll", function (){
-    this.scrollY > 70 ? nav.style.backgroundColor = 'black'
-     : nav.style.backgroundColor = 'transparent';
-     setInterval(() => {cond()},10);
-})
-// If Scroll Becuse Animation
-function cond(){
-    if(window.scrollY >= 555){
-        let arts = document.querySelectorAll(".net article");
-        arts.forEach((art,index) =>{
-            art.style.animation = `showArt 1s ease-in-out forwards alternate ${ 0.2 * index}s`
-        })
-      }  
-}
-// Click Btn If Inp != '' Scroll To #Show && Fecth Api
-btnser.onclick = ()=>{
-    if(inp.value !== ''){
-        // Emp The Box
-        box.innerHTML = "";
-        // Fecth Api Page 1
-        fetch(`https://www.omdbapi.com/?s=${inp.value}&?i=tt3896198&apikey=c3d23a7b`)
-        .then(res => res.json())
-        .then(data => {
-            if(data.Response !== 'False'){
-                data.Search.forEach(film =>{
-                    box.innerHTML += `
-                    <article>
-                        <img src="${film.Poster}" alt="">
-                        <p>${film.Title}</p>
-                    </article>
-                    `;
-                })
-            }else{
-                // Error
-                console.clear();
-                box.innerHTML = `<p><span style='color:red'>${inp.value}</span> Not Found</p>`;
-            }
-    }).then(
-        // Fecth Api Page 2
-        fetch(`https://www.omdbapi.com/?s=${inp.value}&page=2&?i=tt3896198&apikey=c3d23a7b`)
-        .then(res => res.json())
-        .then(data => {
-            if(data.Response !== 'False'){
-                data.Search.forEach(film =>{
-                    box.innerHTML += `
-                    <article>
-                        <img src="${film.Poster}" alt="">
-                        <p>${film.Title}</p>
-                    </article>
-                    `;
-                })
-            }else{
-                // Error
-                console.clear();
-                box.innerHTML = `<p><span style='color:red'>${inp.value}</span> Not Found</p>`;
-            }
-    })
-    ).then(()=>{
-        // Scroll To Box
-        setTimeout(() => {
-            window.scrollTo({top:555,behavior:"smooth"});
-            span.textContent = inp.value;
-        }, 1000);
-    })
-    }
-}
-// Custom Slect Box Acttive Class
-divForSel.onclick = () =>{selectBox.classList.toggle("acctive")};
-// Span Content
-lis.forEach(li =>{li.addEventListener("click",() => DropSpan.textContent = li.textContent)});
-// Press Enter To Search
-window.onkeyup = e => e.keyCode === 13 ? btnser.click() : "";
-// Show Films In Home
-function Film() {
-    fetch(`https://www.omdbapi.com/?s=wood&?i=tt3896198&apikey=c3d23a7b`)
-        .then(res => res.json())
-        .then(data => {
-            data.Search.forEach(film =>{
-                box.innerHTML += `
-                <article>
-                    <img src="${film.Poster}" alt="">
-                    <p>${film.Title}</p>
-                </article>
-                `;
-            })
-    }).then(
-        fetch(`https://www.omdbapi.com/?s=play&?i=tt3896198&apikey=c3d23a7b`)
-        .then(res => res.json())
-        .then(data => {
-            data.Search.forEach(film =>{
-                box.innerHTML += `
-                <article>
-                    <img src="${film.Poster}" alt="">
-                    <p>${film.Title}</p>
-                </article>
-                `;
-            })
-    })).then(
-        fetch(`https://www.omdbapi.com/?s=batman&?i=tt3896198&apikey=c3d23a7b`)
-        .then(res => res.json())
-        .then(data => {
-            data.Search.forEach(film =>{
-                box.innerHTML += `
-                <article>
-                    <img src="${film.Poster}" alt="">
-                    <p>${film.Title}</p>
-                </article>
-                `;
-            })
-    }))
+const navBar = document.querySelector("#nav");
+const showNavBtn = document.querySelector("#toggleBtn");
+const hideNavBtn = navBar.querySelector(".lang-btn > span");
+const langBtn = navBar.querySelector(".lang-btn");
+
+// Show navBar
+showNavBtn.addEventListener("click", () => toggleActiveClass(langBtn));
+
+// Hide navBar
+hideNavBtn.addEventListener("click", () => toggleActiveClass(langBtn));
+
+const onScrollHandelar = () => {
+  // Get Cards
+  let Cards = document.querySelectorAll(".net article");
+
+  // Set Animate
+  const setAnimate = (idx) =>
+    `showArt 1s ease-in-out forwards alternate ${0.2 * idx}s`;
+
+  // Add Animate to Card With Condition
+  window.scrollY >= 555 &&
+    Cards.forEach((Card, idx) => (Card.style.animation = setAnimate(idx)));
+
+  // Change nav Bar backgroundColor
+  const changeBackground = (value) => (navBar.style.backgroundColor = value);
+
+  window.scrollY > 70
+    ? changeBackground("black")
+    : changeBackground("transparent");
 };
-Film();
+
+// onScrollHandelar
+window.addEventListener("scroll", onScrollHandelar);
+
+// Call Some Login Onload
+window.addEventListener("load", () => {
+  onScrollHandelar();
+  setApiHandelar();
+});
+
+// Set API Data Handelar
+const viewSection = document.querySelector("#Show");
+const cardsBox = document.querySelector(".contain .net");
+const searchContent = document.querySelector(".contain h1 span");
+
+const setApiHandelar = (searchValue = "Home") => {
+  // Some HTML
+  const errorMsg = (value) =>
+    (cardsBox.innerHTML = `<p><span style='color:red'>${value}</span> Not Found</p>`);
+
+  const article = (Poster, Title) =>
+    (cardsBox.innerHTML += `<article> <img src="${Poster}" alt=""> <p>${Title}</p> </article>`);
+
+  // Check Search Vlue
+  if (!searchValue) return errorMsg("Please Type Something");
+
+  // First Page
+  const APILink = `https://www.omdbapi.com/?s=${searchValue}&?i=tt3896198&apikey=c3d23a7b`;
+
+  // Get Data
+  fetch(APILink)
+    .then((res) => res.json())
+    .then((data) => {
+      // Empty The Box
+      cardsBox.innerHTML = "";
+
+      // Check The Search Input
+      data.Search
+        ? data.Search.forEach(({ Poster, Title }) => article(Poster, Title))
+        : errorMsg(searchValue);
+
+      // Scroll
+      viewSection.scrollIntoView({ behavior: "smooth" });
+      searchContent.textContent = searchValue;
+    });
+};
+
+// Search Handelar
+const searchForm = document.querySelector("#home form.text");
+
+searchForm.addEventListener("submit", (e) => {
+  // Stop Reload
+  e.preventDefault();
+
+  // Set Data
+  setApiHandelar(searchForm.SearchInput);
+});
+
+// Custom Slect Box
+const dropDownBtn = document.querySelector(".lang-btn .lang");
+const dropDown = document.querySelector(".lang .dropDown");
+const dropDownList = document.querySelectorAll(".dropDown ul li");
+const dropDownSpan = document.querySelector(".lang span");
+
+// Add Active Class
+dropDownBtn.addEventListener("click", () => toggleActiveClass(dropDown));
+// Selected
+dropDownList.forEach((li) => {
+  li.addEventListener("click", () => {
+    dropDownSpan.textContent = li.textContent;
+  });
+});
