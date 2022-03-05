@@ -36,17 +36,14 @@ const onScrollHandelar = () => {
 window.addEventListener("scroll", onScrollHandelar);
 
 // Call Some Login Onload
-window.addEventListener("load", () => {
-  onScrollHandelar();
-  setApiHandelar();
-});
+window.addEventListener("load", () => setApiHandelar("Home", onScrollHandelar));
 
 // Set API Data Handelar
 const viewSection = document.querySelector("#Show");
 const cardsBox = document.querySelector(".contain .net");
 const searchContent = document.querySelector(".contain h1 span");
 
-const setApiHandelar = (searchValue = "Home") => {
+const setApiHandelar = (searchValue, CB) => {
   // Some HTML
   const errorMsg = (value) =>
     (cardsBox.innerHTML = `<p><span style='color:red'>${value}</span> Not Found</p>`);
@@ -72,9 +69,8 @@ const setApiHandelar = (searchValue = "Home") => {
         ? data.Search.forEach(({ Poster, Title }) => article(Poster, Title))
         : errorMsg(searchValue);
 
-      // Scroll
-      viewSection.scrollIntoView({ behavior: "smooth" });
-      searchContent.textContent = searchValue;
+      // Call Back Function
+      CB?.();
     });
 };
 
@@ -86,7 +82,10 @@ searchForm.addEventListener("submit", (e) => {
   e.preventDefault();
 
   // Set Data
-  setApiHandelar(searchForm.SearchInput);
+  setApiHandelar(searchForm.SearchInput.value, () => {
+    viewSection.scrollIntoView({ behavior: "smooth" });
+    searchContent.textContent = searchValue;
+  });
 });
 
 // Custom Slect Box
